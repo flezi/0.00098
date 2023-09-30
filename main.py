@@ -29,6 +29,25 @@ def select_color(*events):
 
 
 def run(*args):
+    parts_of_speech=[s.get() for s in pos_vars if s.get()]
+    if not words_ammount_entry.get():
+        messagebox.showerror('Ошибка', "Не указанно число слов!")
+        return
+    if not wc_width_entry.get():
+        messagebox.showerror('Ошибка', "Не указанно - ширина!")
+        return
+    if not wc_height_entry.get():
+        messagebox.showerror('Ошибка', "Не указанно - высота!")
+        return
+    if not wc_margin_entry.get():
+        messagebox.showerror('Ошибка', "Не указанно - отступы!")
+        return
+    if not parts_of_speech:
+        messagebox.showerror('Ошибка', "Не указанно - ни одна из предложенных частей речи!")
+        return
+    if file_path_lbl['text'] == 'Выбирите исходный файл с текстом':
+        messagebox.showerror('Ошибка', "Не указанно - исходный файл!")
+        return
     '''
         TODO:
             виджеты:
@@ -40,16 +59,32 @@ def run(*args):
         FIXME:
             картинка в два раза больше, чем указанные параметры!
     '''
-    TextAnalyser(
+    destination_file = filedialog.asksaveasfile(
+        mode='w',
+        defaultextension='*.png',
+        filetypes=[('PNG Image', '*.png')]).name
+    
+    messagebox.showwarning('Предупреждение', 'Пожалуйста подождите не закрывайте программу!')
+   
+    text_analyser = TextAnalyser(
         source_file=file_path_lbl['text'],
         words_ammount=int(words_ammount_entry.get()),
         wc_width=int(wc_width_entry.get()),
         wc_height=int(wc_height_entry.get()),
         wc_margin=int(wc_margin_entry.get()),
         wc_background=wc_background_cnvs['background'],
-        parts_of_speech=[s.get() for s in pos_vars if s.get()],
+        parts_of_speech=parts_of_speech,
+        destination_file=destination_file,
     )
 
+    len(text_analyser.words)
+
+    messagebox.showinfo(
+        'Готово!', 
+        f'файл сохранен в {destination_file} \n' +
+        f'колличество слов в тексте {len(text_analyser.words)}, ' +
+        f'подходящих частей речи {len(text_analyser.pos_words)}',
+        )
 
 files = [
     ('Text Document', '*.txt')
@@ -66,14 +101,18 @@ file_path_lbl.bind("<Button-1>", select_file)
 # words ammount
 words_ammount_lbl = tk.Label(window, text='количество слов на картинке:')
 words_ammount_entry = tk.Entry(window)  # TODO: только инты
+words_ammount_entry.insert(0, '255')
 
 # wordcloud image size
 wc_width_lbl = tk.Label(window, text='ширина картинки в пискелях:')
 wc_width_entry = tk.Entry(window)
+wc_width_entry.insert(0, '1920')
 wc_height_lbl = tk.Label(window, text='высота картинки в пискелях:')
 wc_height_entry = tk.Entry(window)
+wc_height_entry.insert(0, '1920')
 wc_margin_lbl = tk.Label(window, text='отступ картинки от края в пискелях:')
 wc_margin_entry = tk.Entry(window)
+wc_margin_entry.insert(0, '10')
 
 # wc background color selection
 wc_background_lbl = tk.Label(window, text='выбирите цвет фона картинки:')
@@ -134,6 +173,8 @@ for i, _ in enumerate(pos_texts):
         variable=pos_vars[i],
     )
     pos_chckbtns.append(chkbtn)
+
+pos_chckbtns[0].select()
 
 # start button
 start_btn = tk.Button(window, text='создать облако слов', command=lambda: run())
